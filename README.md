@@ -5,6 +5,8 @@
 
 Go library for consuming the [SMHI meteorological forecasts API](https://opendata.smhi.se/apidocs/metfcst/index.html). This project is not affiliated with SMHI in any way.
 
+**Pre-alpha software**. Expect API breakage, crashes, data loss, silent data corruption etc.
+
 ## Installation
 
 ```bash

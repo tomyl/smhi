@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// ParameterDescriptions describe the forecast timeseries item parameters. See
 // https://opendata.smhi.se/apidocs/metfcst/parameters.html
 var ParameterDescriptions = map[string]ParameterDescription{
 	"msl": {
@@ -164,6 +165,7 @@ var ParameterDescriptions = map[string]ParameterDescription{
 	},
 }
 
+// ParameterDescription describes a forecast timeseries item.
 type ParameterDescription struct {
 	Name        string
 	LevelType   string
@@ -173,6 +175,7 @@ type ParameterDescription struct {
 	ValueRange  string
 }
 
+// WeatherSymbols describe the forecast timeseries item weather symbols.
 var WeatherSymbols = []WeatherSymbol{
 	{0, "No weather", "?", 1},
 	{1, "Clear sky", "\u2600", 1},                   // ☀
@@ -204,6 +207,7 @@ var WeatherSymbols = []WeatherSymbol{
 	{27, "Heavy snowfall", "\U0001f328", 1},         // 🌨
 }
 
+// WeatherSymbol describe a forecast timeseries item weather symbol.
 type WeatherSymbol struct {
 	Value        int
 	Meaning      string
@@ -211,6 +215,8 @@ type WeatherSymbol struct {
 	UnicodeWidth int
 }
 
+// FixedWidth returns a string representationt that is suitable to print in a
+// terminal.
 func (s WeatherSymbol) FixedWidth() string {
 	if s.UnicodeWidth == 1 {
 		return s.Unicode + " "
@@ -218,6 +224,8 @@ func (s WeatherSymbol) FixedWidth() string {
 	return s.Unicode + "\u200b"
 }
 
+// Forecast represents a 10 day forecast. See
+// https://opendata.smhi.se/apidocs/metfcst/get-forecast.html
 type Forecast struct {
 	ApprovedTime  time.Time
 	ReferenceTime time.Time
@@ -225,18 +233,22 @@ type Forecast struct {
 	TimeSeries    []TimeSeriesItem
 }
 
+// Geometry describes the forecast area.
 type Geometry struct {
 	Type        string
 	Coordinates []Point
 }
 
+// Point is a longitude/latitude coordinate.
 type Point [2]float64
 
+// TimeSeriesItem is a data point in a forecast timeseries.
 type TimeSeriesItem struct {
 	ValidTime  time.Time
 	Parameters []Parameter
 }
 
+// Float64 returns the parameter by the given name as a float64.
 func (i TimeSeriesItem) Float64(name string) float64 {
 	for _, p := range i.Parameters {
 		if p.Name == name {
@@ -246,6 +258,7 @@ func (i TimeSeriesItem) Float64(name string) float64 {
 	return 0
 }
 
+// Int returns the parameter by the given name as an int.
 func (i TimeSeriesItem) Int(name string) int {
 	for _, p := range i.Parameters {
 		if p.Name == name {
@@ -255,18 +268,22 @@ func (i TimeSeriesItem) Int(name string) int {
 	return 0
 }
 
+// Temperature returns the temperature for this forecast timeseries item.
 func (i TimeSeriesItem) Temperature() float64 {
 	return i.Float64("t")
 }
 
+// MaxPrecipitation returns the max precipitation for this forecast timeseries item.
 func (i TimeSeriesItem) MaxPrecipitation() float64 {
 	return i.Float64("pmax")
 }
 
+// WindSpeed returns the wind speed for this forecast timeseries item.
 func (i TimeSeriesItem) WindSpeed() float64 {
 	return i.Float64("ws")
 }
 
+// WeatherSymbol returns the weather symbol for this forecast timeseries item.
 func (i TimeSeriesItem) WeatherSymbol() WeatherSymbol {
 	idx := i.Int("Wsymb2")
 	if idx >= 1 && idx < len(WeatherSymbols) {
@@ -275,6 +292,7 @@ func (i TimeSeriesItem) WeatherSymbol() WeatherSymbol {
 	return WeatherSymbol{}
 }
 
+// Parameter is a forecast timeseries item paratemter e.g. temperature.
 type Parameter struct {
 	Name      string
 	LevelType string
@@ -283,6 +301,7 @@ type Parameter struct {
 	Values    []float64
 }
 
+// GetForecast requests the 10 day forecast for a longitude/latitude coordinate.
 func GetForecast(lon, lat float64) (*Forecast, error) {
 	resp, err := http.Get(fmt.Sprintf("https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/%f/lat/%f/data.json", lon, lat))
 	if err != nil {
